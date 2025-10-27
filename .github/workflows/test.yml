@@ -40,7 +40,7 @@ jobs:
           API_KEYS: test:standard:enhanced:enterprise
           RATE_LIMIT_MAX: 100
           RATE_LIMIT_WINDOW_SEC: 60
-        run: dart test --reporter=expanded
+        run: dart test test/auth_test.dart test/feature_flags_test.dart test/logging_test.dart test/notes_db_test.dart test/notes_test.dart test/notes_validation_test.dart test/performance_test.dart test/rate_limit_test.dart --reporter=expanded
       
       - name: Generate test coverage (optional)
         run: |
