@@ -1,23 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
+import '../test_helper.dart';
 
 void main() {
   group('Feature Flags Service Tests', () {
-    const String baseUrl = 'http://localhost:8080';
-    late HttpClient client;
+    late TestServer server;
 
-    setUp(() {
-      client = HttpClient();
+    setUp(() async {
+      server = TestServer();
+      await server.start();
     });
 
-    tearDown(() {
-      client.close();
+    tearDown(() async {
+      await server.stop();
     });
 
     test('Should return Sandbox tier for unknown key', () async {
-      final request =
-          await client.getUrl(Uri.parse('$baseUrl/v1/feature-flags'));
+      final request = await server.client
+          .getUrl(Uri.parse('${server.baseUrl}/v1/feature-flags'));
       request.headers.add('X-API-Key', 'unknown_key');
       final response = await request.close();
 
@@ -32,8 +33,8 @@ void main() {
     });
 
     test('Should return Standard tier features', () async {
-      final request =
-          await client.getUrl(Uri.parse('$baseUrl/v1/feature-flags'));
+      final request = await server.client
+          .getUrl(Uri.parse('${server.baseUrl}/v1/feature-flags'));
       request.headers.add('X-API-Key', 'key_standard');
       final response = await request.close();
 
@@ -48,8 +49,8 @@ void main() {
     });
 
     test('Should return Enhanced tier features', () async {
-      final request =
-          await client.getUrl(Uri.parse('$baseUrl/v1/feature-flags'));
+      final request = await server.client
+          .getUrl(Uri.parse('${server.baseUrl}/v1/feature-flags'));
       request.headers.add('X-API-Key', 'key_enhanced');
       final response = await request.close();
 
@@ -64,8 +65,8 @@ void main() {
     });
 
     test('Should return Enterprise tier features with SSO', () async {
-      final request =
-          await client.getUrl(Uri.parse('$baseUrl/v1/feature-flags'));
+      final request = await server.client
+          .getUrl(Uri.parse('${server.baseUrl}/v1/feature-flags'));
       request.headers.add('X-API-Key', 'key_enterprise');
       final response = await request.close();
 
@@ -81,8 +82,8 @@ void main() {
     });
 
     test('Should return Sandbox for null API key', () async {
-      final request =
-          await client.getUrl(Uri.parse('$baseUrl/v1/feature-flags'));
+      final request = await server.client
+          .getUrl(Uri.parse('${server.baseUrl}/v1/feature-flags'));
       final response = await request.close();
 
       expect(response.statusCode, 200);

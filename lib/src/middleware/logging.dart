@@ -9,6 +9,7 @@ Middleware logRequestsCustom() {
       try {
         response = await innerHandler(request);
       } catch (e) {
+        // Only catch unexpected errors, preserve application errors
         final body = jsonEncode({'error': e.toString()});
         response = Response.internalServerError(
             body: body, headers: {'content-type': 'application/json'});

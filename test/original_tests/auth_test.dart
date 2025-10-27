@@ -1,22 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
+import '../test_helper.dart';
 
 void main() {
   group('Auth Middleware Tests', () {
-    const String baseUrl = 'http://localhost:8080';
-    late HttpClient client;
+    late TestServer server;
 
-    setUp(() {
-      client = HttpClient();
+    setUp(() async {
+      server = TestServer();
+      await server.start();
     });
 
-    tearDown(() {
-      client.close();
+    tearDown(() async {
+      await server.stop();
     });
 
     test('Should allow health endpoint without authentication', () async {
-      final request = await client.getUrl(Uri.parse('$baseUrl/health'));
+      final request =
+          await server.client.getUrl(Uri.parse('${server.baseUrl}/health'));
       final response = await request.close();
 
       expect(response.statusCode, 200);
@@ -26,7 +28,8 @@ void main() {
 
     test('Should allow requests when no API_KEYS configured (dev mode)',
         () async {
-      final request = await client.getUrl(Uri.parse('$baseUrl/v1/notes'));
+      final request =
+          await server.client.getUrl(Uri.parse('${server.baseUrl}/v1/notes'));
       final response = await request.close();
 
       // In dev mode without API_KEYS, requests should be allowed
@@ -34,7 +37,8 @@ void main() {
     });
 
     test('Should reject requests with invalid API key', () async {
-      final request = await client.getUrl(Uri.parse('$baseUrl/v1/notes'));
+      final request =
+          await server.client.getUrl(Uri.parse('${server.baseUrl}/v1/notes'));
       request.headers.add('X-API-Key', 'invalid_key');
       final response = await request.close();
 
@@ -43,7 +47,8 @@ void main() {
     });
 
     test('Should allow requests with valid API key', () async {
-      final request = await client.getUrl(Uri.parse('$baseUrl/v1/notes'));
+      final request =
+          await server.client.getUrl(Uri.parse('${server.baseUrl}/v1/notes'));
       request.headers.add('X-API-Key', 'test'); // Using default dev key
       final response = await request.close();
 
