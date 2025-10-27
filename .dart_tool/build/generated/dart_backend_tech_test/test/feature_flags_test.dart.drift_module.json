@@ -1,0 +1,8 @@
+{
+  "elements": {},
+  "imports": [
+    "package:test/test.dart",
+    "package:shelf/shelf.dart",
+    "package:dart_backend_tech_test/src/services/feature_flags.dart"
+  ]
+}

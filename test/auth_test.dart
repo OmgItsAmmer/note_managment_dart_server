@@ -13,28 +13,40 @@ void main() {
       expect(response.statusCode, 200);
     });
 
-    test('Should allow requests when no API_KEYS configured (dev mode)',
-        () async {
-      // When API_KEYS is not configured, auth middleware allows all requests
+    test('Should reject requests without API key', () async {
       final handler = authMiddleware()((req) async => Response.ok('success'));
 
       final request = Request('GET', Uri.parse('http://localhost/v1/notes'));
 
       final response = await handler(request);
+      expect(response.statusCode, 401);
+    });
+
+    test('Should allow requests with valid API key', () async {
+      final handler = authMiddleware()((req) async => Response.ok('success'));
+
+      final request = Request('GET', Uri.parse('http://localhost/v1/notes'),
+          headers: {'X-API-Key': 'test'});
+
+      final response = await handler(request);
       expect(response.statusCode, 200);
     });
-      
-    test('Should process requests and allow inner handler to run', () async {
+
+    test('Should process requests and pass API key in context', () async {
       var handlerCalled = false;
+      String? capturedKey;
       final handler = authMiddleware()((req) async {
         handlerCalled = true;
+        capturedKey = req.context['apiKey'] as String?;
         return Response.ok('success');
       });
 
-      final request = Request('GET', Uri.parse('http://localhost/v1/notes'));
+      final request = Request('GET', Uri.parse('http://localhost/v1/notes'),
+          headers: {'X-API-Key': 'standard'});
       await handler(request);
 
       expect(handlerCalled, true);
+      expect(capturedKey, 'standard');
     });
   });
 }

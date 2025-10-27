@@ -1,0 +1,10 @@
+{
+  "elements": {},
+  "imports": [
+    "package:shelf/shelf.dart",
+    "package:shelf_router/shelf_router.dart",
+    "package:uuid/uuid.dart",
+    "package:drift/drift.dart",
+    "package:dart_backend_tech_test/src/database/database.dart"
+  ]
+}

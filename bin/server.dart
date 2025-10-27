@@ -1,4 +1,9 @@
+// dart run bin/server.dart
+// dart test test/original_tests/
+// dart test test/original_tests/
+
 import 'dart:io';
+
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
@@ -7,6 +12,8 @@ import 'package:dart_backend_tech_test/src/middleware/auth.dart';
 import 'package:dart_backend_tech_test/src/middleware/rate_limit.dart';
 import 'package:dart_backend_tech_test/src/middleware/logging.dart';
 import 'package:dart_backend_tech_test/src/controllers/notes_controller.dart';
+import 'package:dart_backend_tech_test/src/controllers/notes_controller_db.dart';
+import 'package:dart_backend_tech_test/src/database/database.dart';
 import 'package:dart_backend_tech_test/src/services/feature_flags.dart';
 
 void main(List<String> args) async {
@@ -16,6 +23,7 @@ void main(List<String> args) async {
       Platform.environment['API_KEYS'] ?? 'test:standard:enhanced:enterprise';
   final rateLimitMax = Platform.environment['RATE_LIMIT_MAX'] ?? '100';
   final rateLimitWindow = Platform.environment['RATE_LIMIT_WINDOW_SEC'] ?? '60';
+  final usePersistence = Platform.environment['USE_PERSISTENCE'] == 'true';
 
   final router = Router();
 
@@ -38,15 +46,22 @@ void main(List<String> args) async {
   // Swagger UI
   final staticHandler =
       createStaticHandler('public', defaultDocument: 'index.html');
-  router.get('/docs', staticHandler);
-  router.get('/docs/<ignored|.*>', staticHandler);
+  router.mount('/docs/', staticHandler);
 
   // Feature flags
   router.get('/v1/feature-flags', FeatureFlagsService.handleGet);
 
-  // Notes CRUD
-  final notes = NotesController();
-  router.mount('/v1/notes', notes.router);
+  // Notes CRUD - Choose between in-memory or database persistence
+  if (usePersistence) {
+    print('📊 Using SQLite database persistence');
+    final db = AppDatabase();
+    final notes = NotesControllerDb(db);
+    router.mount('/v1/notes', notes.router);
+  } else {
+    print('💾 Using in-memory storage (set USE_PERSISTENCE=true for database)');
+    final notes = NotesController();
+    router.mount('/v1/notes', notes.router);
+  }
 
   // Pipeline
   final handler = const Pipeline()

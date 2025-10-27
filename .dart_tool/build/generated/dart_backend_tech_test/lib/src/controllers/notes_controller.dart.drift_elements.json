@@ -1,0 +1,1 @@
+{"valid_import":true,"imports":[{"uri":"package:shelf/shelf.dart","transitive":false},{"uri":"package:shelf_router/shelf_router.dart","transitive":false},{"uri":"package:uuid/uuid.dart","transitive":false},{"uri":"package:dart_backend_tech_test/src/models/note.dart","transitive":false}],"elements":[]}

@@ -1,191 +1,125 @@
-# Dart Backend Tech Test
+# Dart Backend Technical Test (submission window: up to 4 days)
 
-A RESTful API server built with Dart and Shelf framework for managing notes with
-authentication, rate limiting, and feature flags.
+Welcome! This exercise evaluates your backend fundamentals **without requiring prior Dart experience**. We provide a small Shelf-based HTTP server starter and clear tasks. Focus on clean, pragmatic solutions and tests.
 
-## Features
+> **Submission window:** You have **up to 4 days** to submit once you receive this.  
+> **Expected effort:** ~**2–6 hours** depending on your familiarity. Take less or more time as needed within the window.
 
-- **Notes CRUD API**: Create, read, update, and delete notes with pagination
-- **Authentication**: API key-based authentication with configurable keys
-- **Rate Limiting**: Per-API-key rate limiting with configurable limits
-- **Feature Flags**: Tier-based feature access (Sandbox, Standard, Enhanced,
-  Enterprise)
-- **Request Logging**: Structured JSON logging with response times
-- **Health Check**: Basic health endpoint for monitoring
-- **API Documentation**: OpenAPI 3.0 spec with interactive Swagger UI
-- **Comprehensive Tests**: 24 tests covering all functionality
-- **Docker Support**: Containerized deployment ready
+---
 
-## API Endpoints
+## 🧪 What you will build
 
-### Documentation
+A minimal backend for a fictional SaaS with:
+- CRUD for **Notes** (`/v1/notes`)
+- **API key auth** per request via `X-API-Key`
+- **Rate limiting** per API key
+- **Feature flags** endpoint that varies by **tier** (`Sandbox`, `Standard`, `Enhanced`, `Enterprise`)
+- Basic **logging** and **error handling**
 
-- `GET /docs` - Interactive Swagger UI documentation
-- `GET /openapi.yaml` - OpenAPI 3.0 specification
+Optional (bonus):
+- Persistence with SQLite via **Drift**
+- OpenAPI schema + Swagger UI
+- Docker multi-stage build & healthcheck
+- Simple CI (GitHub Actions) to run tests
 
-### Health Check
+---
 
-- `GET /health` - Returns "ok" (no auth required)
+## 🧰 Getting started
 
-### Feature Flags
+### Prereqs
+- Dart SDK (3.x) or Docker
+- Make or Bash (optional)
 
-- `GET /v1/feature-flags` - Returns available features based on API key tier
-
-### Notes
-
-- `GET /v1/notes` - List notes with pagination (`?page=1&limit=20`)
-- `POST /v1/notes` - Create a new note
-- `GET /v1/notes/<id>` - Get specific note
-- `PUT /v1/notes/<id>` - Update note
-- `DELETE /v1/notes/<id>` - Delete note
-
-## Configuration
-
-### Environment Variables
-
-- `PORT` - Server port (default: 8080)
-- `API_KEYS` - Colon-separated list of valid API keys (e.g., "key1:key2:key3")
-- `RATE_LIMIT_MAX` - Max requests per window (default: 60)
-- `RATE_LIMIT_WINDOW_SEC` - Rate limit window in seconds (default: 60)
-
-### API Key Tiers
-
-API keys determine feature access:
-
-- **Sandbox**: Basic notes CRUD only
-- **Standard**: Notes CRUD + OAuth
-- **Enhanced**: Standard + Advanced Reports
-- **Enterprise**: Enhanced + SSO/SAML
-
-Key tier detection by suffix: `enterprise`, `enhanced`, `standard`, or default
-to `Sandbox`.
-
-## Getting Started
-
-### Prerequisites
-
-- Dart SDK 3.4.0 or higher
-
-### Installation
-
+### Run locally
 ```bash
-# Install dependencies
+cd app
 dart pub get
-
-# Run the server
 dart run bin/server.dart
 ```
+Server runs on `http://localhost:8080`
 
-### Docker
-
+### Using Docker
 ```bash
-# Build image
-docker build -t dart-backend .
-
-# Run container
-docker run -p 8080:8080 -e API_KEYS="test:standard:enhanced:enterprise" dart-backend
+docker build -t dart-tech-test:dev .
+docker run --rm -p 8080:8080 -e API_KEYS="key_sandbox:key_standard:key_enhanced:key_enterprise" dart-tech-test:dev
 ```
 
-## Testing
-
+### Quick test
 ```bash
-# Run all tests
 dart test
-
-# Run tests with detailed output
-dart test --reporter expanded
-
-# Run performance test
-dart test test/performance_test.dart
 ```
 
-**Test Coverage:** 24 comprehensive tests including:
+---
 
-- Auth middleware tests
-- Rate limiting tests
-- Feature flags tests
-- Notes CRUD tests
-- Validation tests
-- Logging tests
-- Performance benchmarks
+## ✅ Tasks (core scope)
 
-## Project Structure
+### 1) Notes CRUD
+- Implement endpoints in `NotesController`:
+  - `POST /v1/notes` → create (fields: `title` (1..120), `content` (0..10k))
+  - `GET /v1/notes` → list with pagination (`page`, `limit`)
+  - `GET /v1/notes/:id` → fetch
+  - `PUT /v1/notes/:id` → update
+  - `DELETE /v1/notes/:id` → delete
+- In-memory store is fine. **Bonus:** add persistence with SQLite (Drift).
 
-```
-lib/src/
-├── controllers/
-│   └── notes_controller.dart    # Notes CRUD operations
-├── middleware/
-│   ├── auth.dart                # API key authentication
-│   ├── logging.dart             # Request/response logging
-│   └── rate_limit.dart          # Rate limiting
-├── models/
-│   └── note.dart                # Note data model
-└── services/
-    └── feature_flags.dart       # Feature flag service
-```
+### 2) API Key Authentication
+- Middleware reads **`X-API-Key`** and validates against env var `API_KEYS` (colon-separated list).
+- Return **401** on missing/invalid key.
 
-## Example Usage
+### 3) Rate Limiting
+- Per API key. Use a simple **fixed window** or **token bucket** (your choice).
+- Defaults: 60 requests / 60 seconds per key. Configurable via env:
+  - `RATE_LIMIT_MAX=60`
+  - `RATE_LIMIT_WINDOW_SEC=60`
+- Return **429** when exceeded. Include `Retry-After` header.
 
-### Create a Note
+### 4) Feature Flags by Tier
+- Endpoint: `GET /v1/feature-flags`
+- Map API keys to **tiers** and return a JSON describing available features per tier.
+  - Tiers: `Sandbox`, `Standard`, `Enhanced`, `Enterprise`
+- See `lib/src/services/feature_flags.dart` for starter.
 
-```bash
-curl -X POST http://localhost:8080/v1/notes \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: your-api-key" \
-  -d '{"title": "My Note", "content": "Note content"}'
-```
+### 5) Logging & Error Handling
+- Structured logs (JSON) for request/response metadata + errors.
+- Convert thrown errors to JSON responses with status codes.
 
-### List Notes
+### 6) Tests
+- Add unit tests for services & middleware + integration tests for routes.
+- Aim for ~10–15 meaningful tests.
 
-```bash
-curl -H "X-API-Key: your-api-key" \
-  http://localhost:8080/v1/notes?page=1&limit=10
-```
+### 7) Performance (light)
+- Locally, send 100 requests to `/v1/notes` list and include your P95 latency measurement (any tool).
+- Provide a short note in **REPORT.md** on your approach & results.
 
-### Get Feature Flags
+---
 
-```bash
-curl -H "X-API-Key: standard-key" \
-  http://localhost:8080/v1/feature-flags
-```
+## 📦 Deliverables
 
-## Performance
+- Update code under `app/`
+- **REPORT.md** (1–2 pages): architecture choices, tradeoffs, rate limiting approach, test coverage summary, and perf results.
+- Provide one of the following:
+  1) A **ZIP** of the repository, or a public **Git repo** link, **and**
+  2) (Nice to have) A **hosted demo URL** (e.g., Cloud Run/Render) plus a `/health` endpoint.
 
-Based on 100 requests to the list endpoint:
+---
 
-- **P50 Latency:** 3.00 ms
-- **P95 Latency:** 5.41 ms
-- **P99 Latency:** 33.12 ms
+## 🧮 Rubric (what we look for) — 100 pts
 
-See `REPORT.md` for detailed performance analysis.
+- Correctness & API design – 25
+- Code quality, structure, maintainability – 20
+- Auth & rate limiting – 20
+- Tests (coverage & meaningful assertions) – 20
+- Error handling & logging – 10
+- Documentation & DX – 5
 
-## Documentation
+**Bonus (up to +10):** Persistence, OpenAPI, Docker multi-stage, CI.
 
-This project includes:
+---
 
-- **REPORT.md**: Comprehensive implementation report with architecture
-  decisions, tradeoffs, and analysis
-- **OpenAPI Spec**: Machine-readable API specification
-- **Swagger UI**: Interactive API documentation at `/docs`
+## 📚 Helpful references
 
-## Assignment Completion
+- Shelf (HTTP server): https://pub.dev/packages/shelf
+- shelf_router: https://pub.dev/packages/shelf_router
+- Dart testing: https://pub.dev/packages/test
 
-✅ **Core Requirements (All Complete)**
-
-- Notes CRUD with validation and pagination
-- API key authentication via X-API-Key header
-- Per-key rate limiting (fixed window algorithm)
-- Feature flags with 4 tiers
-- Structured JSON logging
-- Comprehensive error handling
-- 24 comprehensive tests (unit + integration)
-- Performance benchmarking (P95: 5.41ms)
-
-✅ **Bonus Features**
-
-- OpenAPI 3.0 specification
-- Interactive Swagger UI documentation
-
-See `REPORT.md` for detailed documentation of architecture, design decisions,
-and tradeoffs.
+We value clarity, working software, and thoughtful tradeoffs.

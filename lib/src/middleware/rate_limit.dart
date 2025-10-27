@@ -12,10 +12,10 @@ final _buckets = HashMap<String, _Bucket>();
 
 Middleware rateLimitMiddleware() {
   final max =
-      int.tryParse(Platform.environment['RATE_LIMIT_MAX'] ?? '1000') ?? 1000;
+      int.tryParse(Platform.environment['RATE_LIMIT_MAX'] ?? '60') ?? 60;
   final windowSec =
-      int.tryParse(Platform.environment['RATE_LIMIT_WINDOW_SEC'] ?? '1000') ??
-          1000;
+      int.tryParse(Platform.environment['RATE_LIMIT_WINDOW_SEC'] ?? '60') ??
+          60;
 
   return (Handler inner) {
     return (Request req) async {

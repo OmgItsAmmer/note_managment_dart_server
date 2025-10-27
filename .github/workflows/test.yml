@@ -1,0 +1,67 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      
+      - name: Install dependencies
+        run: dart pub get
+      
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+        continue-on-error: true
+      
+      - name: Analyze code
+        run: dart analyze --fatal-infos
+        continue-on-error: true
+      
+      - name: Run tests
+        run: dart test --reporter=expanded
+        env:
+          API_KEYS: test:standard:enhanced:enterprise
+          RATE_LIMIT_MAX: 100
+          RATE_LIMIT_WINDOW_SEC: 60
+      
+      - name: Generate test coverage (optional)
+        run: |
+          dart pub global activate coverage
+          dart pub global run coverage:test_with_coverage
+        continue-on-error: true
+
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: docker build -t dart-tech-test:ci .
+      
+      - name: Test Docker image
+        run: |
+          docker run -d --name test-container -p 8080:8080 \
+            -e API_KEYS="test:standard:enhanced:enterprise" \
+            dart-tech-test:ci
+          sleep 5
+          curl -f http://localhost:8080/health || exit 1
+          docker stop test-container
+
