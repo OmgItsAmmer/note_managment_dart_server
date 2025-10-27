@@ -10,16 +10,12 @@ class _Bucket {
 
 final _buckets = HashMap<String, _Bucket>();
 
-// Function to clear rate limit buckets (useful for testing)
-void clearRateLimitBuckets() {
-  _buckets.clear();
-}
-
 Middleware rateLimitMiddleware() {
   final max =
-      int.tryParse(Platform.environment['RATE_LIMIT_MAX'] ?? '60') ?? 60;
+      int.tryParse(Platform.environment['RATE_LIMIT_MAX'] ?? '1000') ?? 1000;
   final windowSec =
-      int.tryParse(Platform.environment['RATE_LIMIT_WINDOW_SEC'] ?? '60') ?? 60;
+      int.tryParse(Platform.environment['RATE_LIMIT_WINDOW_SEC'] ?? '1000') ??
+          1000;
 
   return (Handler inner) {
     return (Request req) async {

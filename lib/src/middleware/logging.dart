@@ -9,10 +9,16 @@ Middleware logRequestsCustom() {
       try {
         response = await innerHandler(request);
       } catch (e) {
-        // Only catch unexpected errors, preserve application errors
-        final body = jsonEncode({'error': e.toString()});
-        response = Response.internalServerError(
-            body: body, headers: {'content-type': 'application/json'});
+        // Check if it's a JSON parsing error (FormatException)
+        if (e is FormatException) {
+          final body = jsonEncode({'error': 'Invalid JSON format'});
+          response = Response(400,
+              body: body, headers: {'content-type': 'application/json'});
+        } else {
+          final body = jsonEncode({'error': e.toString()});
+          response = Response.internalServerError(
+              body: body, headers: {'content-type': 'application/json'});
+        }
       }
       final end = DateTime.now().microsecondsSinceEpoch;
       final durationMs = ((end - start) / 1000).toStringAsFixed(2);

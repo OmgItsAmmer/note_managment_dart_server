@@ -560,7 +560,7 @@ dart test test/performance_test.dart
 ```bash
 PORT=8080                                      # Server port
 API_KEYS=test:standard:enhanced:enterprise     # Colon-separated keys
-RATE_LIMIT_MAX=60                              # Max requests per window
+RATE_LIMIT_MAX=200                              # Max requests per window
 RATE_LIMIT_WINDOW_SEC=60                       # Window duration (seconds)
 ```
 

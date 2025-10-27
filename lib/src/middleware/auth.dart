@@ -1,18 +1,20 @@
+import 'dart:io';
 import 'package:shelf/shelf.dart';
 
 // Reads X-API-Key header and validates against env API_KEYS (colon-separated).
 Middleware authMiddleware() {
-  final raw = const String.fromEnvironment('API_KEYS', defaultValue: '');
   return (Handler inner) {
     return (Request req) async {
       // Allow health without auth
       if (req.url.path == 'health') return inner(req);
 
       final key = req.headers['X-API-Key'];
-      final keys = (const bool.hasEnvironment('API_KEYS')
-          ? String.fromEnvironment('API_KEYS')
-          : raw);
-      final envKeys = (keys.isEmpty ? (const []) : keys.split(':')).toSet();
+
+      // Use runtime environment variable from Platform.environment
+      final apiKeysEnv = Platform.environment['API_KEYS'] ??
+          'test:standard:enhanced:enterprise'; // Default keys
+      final envKeys =
+          apiKeysEnv.isEmpty ? <String>{} : apiKeysEnv.split(':').toSet();
 
       if (envKeys.isEmpty) {
         // Allow if not configured (for local dev); candidates can change if desired.

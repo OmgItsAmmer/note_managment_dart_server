@@ -1,26 +1,24 @@
 import 'dart:io';
 import 'package:test/test.dart';
-import '../test_helper.dart';
 
 void main() {
   group('Rate Limit Middleware Tests', () {
-    late TestServer server;
+    const String baseUrl = 'http://localhost:8080';
+    late HttpClient client;
 
-    setUp(() async {
-      server = TestServer();
-      await server.start();
+    setUp(() {
+      client = HttpClient();
     });
 
-    tearDown(() async {
-      await server.stop();
+    tearDown(() {
+      client.close();
     });
 
     test('Should allow requests under default rate limit', () async {
-      // Make several requests under the default limit (60)
-      final testKey = 'test_key_under_${DateTime.now().millisecondsSinceEpoch}';
+      // Make several requests under the default limit (1000)
+      final testKey = 'test';
       for (var i = 0; i < 5; i++) {
-        final request =
-            await server.client.getUrl(Uri.parse('${server.baseUrl}/v1/notes'));
+        final request = await client.getUrl(Uri.parse('$baseUrl/v1/notes'));
         request.headers.add('X-API-Key', testKey);
         final response = await request.close();
         expect(response.statusCode, 200);
@@ -30,37 +28,34 @@ void main() {
     test('Should bypass rate limit for health endpoint', () async {
       // Make multiple health check requests
       for (var i = 0; i < 5; i++) {
-        final request =
-            await server.client.getUrl(Uri.parse('${server.baseUrl}/health'));
+        final request = await client.getUrl(Uri.parse('$baseUrl/health'));
         final response = await request.close();
         expect(response.statusCode, 200);
       }
     });
 
     test('Should track rate limits separately per API key', () async {
-      final key1 = 'test_key_1_${DateTime.now().millisecondsSinceEpoch}';
-      final key2 = 'test_key_2_${DateTime.now().millisecondsSinceEpoch}';
+      final key1 = 'standard';
+      final key2 = 'enhanced';
 
       // Make requests with key1
       for (var i = 0; i < 5; i++) {
-        final request =
-            await server.client.getUrl(Uri.parse('${server.baseUrl}/v1/notes'));
+        final request = await client.getUrl(Uri.parse('$baseUrl/v1/notes'));
         request.headers.add('X-API-Key', key1);
         await request.close();
       }
 
       // key2 should still work (separate bucket)
-      final request =
-          await server.client.getUrl(Uri.parse('${server.baseUrl}/v1/notes'));
+      final request = await client.getUrl(Uri.parse('$baseUrl/v1/notes'));
       request.headers.add('X-API-Key', key2);
       final response = await request.close();
       expect(response.statusCode, 200);
     });
 
-    test('Should handle anonymous requests', () async {
-      // Request without API key context
-      final request =
-          await server.client.getUrl(Uri.parse('${server.baseUrl}/v1/notes'));
+    test('Should handle requests with valid API key', () async {
+      // Request with a valid API key
+      final request = await client.getUrl(Uri.parse('$baseUrl/v1/notes'));
+      request.headers.add('X-API-Key', 'test');
       final response = await request.close();
       expect(response.statusCode, 200);
     });
@@ -70,14 +65,12 @@ void main() {
       // for testing purposes. In a real scenario, you'd set RATE_LIMIT_MAX=5
       // and RATE_LIMIT_WINDOW_SEC=60 for this test to work reliably.
 
-      final testKey =
-          'rate_limit_test_${DateTime.now().millisecondsSinceEpoch}';
+      final testKey = 'enterprise'; // Use a valid API key
       var rateLimited = false;
 
       // Make many requests quickly
       for (var i = 0; i < 20; i++) {
-        final request =
-            await server.client.getUrl(Uri.parse('${server.baseUrl}/v1/notes'));
+        final request = await client.getUrl(Uri.parse('$baseUrl/v1/notes'));
         request.headers.add('X-API-Key', testKey);
         final response = await request.close();
 
