@@ -56,11 +56,11 @@ void main(List<String> args) async {
     print('📊 Using SQLite database persistence');
     final db = AppDatabase();
     final notes = NotesControllerDb(db);
-    router.mount('/v1/notes', notes.router);
+    router.mount('/v1/notes', notes.router.call);
   } else {
     print('💾 Using in-memory storage (set USE_PERSISTENCE=true for database)');
     final notes = NotesController();
-    router.mount('/v1/notes', notes.router);
+    router.mount('/v1/notes', notes.router.call);
   }
 
   // Pipeline
@@ -68,7 +68,7 @@ void main(List<String> args) async {
       .addMiddleware(logRequestsCustom())
       .addMiddleware(authMiddleware())
       .addMiddleware(rateLimitMiddleware())
-      .addHandler(router);
+      .addHandler(router.call);
 
   final server = await io.serve(handler, InternetAddress.anyIPv4, port);
   print('🚀 Server listening on port ${server.port}');

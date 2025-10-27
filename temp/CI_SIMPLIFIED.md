@@ -2,13 +2,15 @@
 
 ## 🎯 What Was Changed
 
-Removed all Docker-related features from the GitHub Actions CI pipeline as requested.
+Removed all Docker-related features from the GitHub Actions CI pipeline as
+requested.
 
 ---
 
 ## ❌ **Removed Features:**
 
 ### 1. **Docker Build Job** (Removed)
+
 - Docker image building
 - Container startup and testing
 - Health check endpoint testing
@@ -16,10 +18,12 @@ Removed all Docker-related features from the GitHub Actions CI pipeline as reque
 - Docker image artifact upload
 
 ### 2. **CI Summary Job** (Removed)
+
 - Job that aggregated test and Docker results
 - Final status reporting
 
 ### 3. **Test Coverage** (Already disabled)
+
 - Coverage generation
 - Coverage artifact upload
 
@@ -30,20 +34,21 @@ Removed all Docker-related features from the GitHub Actions CI pipeline as reque
 The CI pipeline now contains **ONLY ONE JOB**:
 
 ### **Test Job** ✅
+
 ```yaml
 jobs:
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    
-    steps:
-      - Checkout code
-      - Setup Dart SDK
-      - Install dependencies
-      - Verify dependencies
-      - Check code formatting
-      - Run static analysis
-      - Run unit tests (30 tests from test/ folder)
+    test:
+        name: Run Tests
+        runs-on: ubuntu-latest
+
+        steps:
+            - Checkout code
+            - Setup Dart SDK
+            - Install dependencies
+            - Verify dependencies
+            - Check code formatting
+            - Run static analysis
+            - Run unit tests (30 tests from test/ folder)
 ```
 
 ---
@@ -51,6 +56,7 @@ jobs:
 ## 📊 What the CI Pipeline Does Now
 
 ### ✅ **Test Job:**
+
 1. **Checkout** - Gets the code from GitHub
 2. **Setup Dart** - Installs Dart SDK (stable)
 3. **Install Dependencies** - Runs `dart pub get`
@@ -60,6 +66,7 @@ jobs:
 7. **Run Tests** - Executes 30 unit tests from `test/` folder
 
 ### ✅ **Tests Run:**
+
 - `test/auth_test.dart` - 4 tests
 - `test/feature_flags_test.dart` - 5 tests
 - `test/logging_test.dart` - 5 tests
@@ -86,6 +93,7 @@ jobs:
 ## 📝 What Remains in the Repository
 
 The **Dockerfile still exists** in the repository for:
+
 - Manual Docker builds
 - Local development
 - Production deployments
@@ -97,6 +105,7 @@ It's just **not part of the CI pipeline** anymore.
 ## 🎯 CI Workflow Triggers
 
 The pipeline still runs automatically on:
+
 - ✅ Push to `main` or `develop` branches
 - ✅ Pull requests to `main` or `develop` branches
 - ✅ Manual trigger via GitHub UI (workflow_dispatch)
@@ -120,6 +129,7 @@ The pipeline still runs automatically on:
 ## ✅ What You'll See on GitHub Actions
 
 When you push code, you'll see:
+
 - **1 job** running: "Run Tests"
 - **Green checkmark** when all tests pass ✅
 - **Red X** if tests fail ❌
@@ -131,10 +141,10 @@ When you push code, you'll see:
 ## 🔄 Next Steps
 
 The CI pipeline is now simplified and ready to use. Every push will:
+
 1. Run code formatting checks
 2. Run static analysis
 3. Run 30 unit tests
 4. Show you the results
 
 That's it! Simple and effective. 🚀
-

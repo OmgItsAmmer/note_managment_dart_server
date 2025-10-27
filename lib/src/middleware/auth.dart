@@ -8,7 +8,9 @@ Middleware authMiddleware() {
       // Allow health, OpenAPI spec, and Swagger UI without auth
       if (req.url.path == 'health' || 
           req.url.path == 'openapi.yaml' || 
-          req.url.path.startsWith('docs')) return inner(req);
+          req.url.path.startsWith('docs')) {
+        return inner(req);
+      }
 
       final key = req.headers['X-API-Key'];
 

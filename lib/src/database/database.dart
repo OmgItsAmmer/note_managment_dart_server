@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:sqlite3/sqlite3.dart';
 import 'package:path/path.dart' as p;
 
 part 'database.g.dart';
@@ -23,7 +22,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   // For testing, allow custom executor
-  AppDatabase.forTesting(QueryExecutor e) : super(e);
+  AppDatabase.forTesting(super.e);
 
   @override
   int get schemaVersion => 1;
